@@ -1,9 +1,9 @@
+from calendar import Calendar
+
 import telebot
 
 token = '978121031:AAELw5ZrRFwBmk8ewLIFs7f36ZRe81PNvVM'
-
 bot = telebot.TeleBot(token)
-
 states = {}
 
 #stat = {'wins' : 0, 'loss' :0   }
@@ -11,6 +11,8 @@ states = {}
 #multiplayer_stats = {}
 
 MAIN_STATE = 'main'
+GAME = 'game'
+CALENDAR = 'calendar'
 QASK = 'qask'
 QANS = 'qans'
 
@@ -54,10 +56,12 @@ def qans(message):
     if message.text == ('0,25'):
         bot.reply_to(message, 'Правильно!')
         states[message.from_user.id] = QASK
+        return
 #        stat ['wins'] +=1
-    if message.text == (('1,0') or ('1,25') or ('0,5')):
+    elif message.text in (('1,0') or ('1,25') or ('0,5')):
         bot.reply_to(message, 'Неправильно :(')
         states[message.from_user.id] = QASK
+        return
 #        stat['loss'] += 1
     else:
         bot.reply_to(message, 'Я тебя не понял')
