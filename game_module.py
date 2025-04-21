@@ -1,32 +1,84 @@
-MAIN = 'main'
-QASK = 'qask'
-QANS = 'qans'
-GAME = 'game'
+import random
+from states import MAIN, QASK, QANS, states
+from charlie import QUESTIONS
+
+user_data = {}  # {user_id: {"score": int, "current_question": dict}}
 
 def handle_game(message, bot, states):
     user_id = message.from_user.id
     state = states.get(user_id)
+    text = message.text.strip()
 
-    if state == GAME:
-        bot.send_message(user_id, "Добро пожаловать в игру!\nНапиши: Спроси меня вопрос")
+    if text == '/game':
+        bot.send_message(user_id, 'Добро пожаловать в игру "Ответь на вопрос"! ✨')
+        user_data[user_id] = {"score": 0}
         states[user_id] = QASK
+        qask(message, bot, user_id)
+        return
+    if text == '/stop':
+        score = user_data.get(user_id, {}).get("score", 0)
+        bot.send_message(user_id, f"Вы завершили игру. Ваш счёт: {score} баллов.")
+        states[user_id] = MAIN
+        user_data.pop(user_id, None)
         return
 
-    elif state == QASK:
-        if message.text == 'Спроси меня вопрос':
-            bot.send_message(user_id, 'Какую площадь имеет клетка тетрадки: 0,25; 1,0; 0,5; 1,25')
-            states[user_id] = QANS
-        elif message.text == '/stop':
-            bot.send_message(user_id, 'Выход из игры.')
-            states[user_id] = MAIN
-        else:
-            bot.send_message(user_id, 'Я тебя не понял')
-
+    if state == QASK:
+        qask(message, bot, user_id)
     elif state == QANS:
-        if message.text == '0,25':
-            bot.send_message(user_id, 'Правильно!')
-        elif message.text in ['1,0', '0,5', '1,25']:
-            bot.send_message(user_id, 'Неправильно :(')
-        else:
-            bot.send_message(user_id, 'Я тебя не понял')
-        states[user_id] = QASK
+        qans(message, bot, user_id)
+    else:
+        bot.send_message(user_id, 'Я тебя не понял. Напиши /game чтобы начать.')
+
+def qask(message, bot, user_id):
+            #text = message.text.strip()
+            if states[user_id] == QASK:
+                bot.send_message(user_id, 'Напиши: Спроси меня вопрос')
+                return
+
+                previous = user_data[user_id].get("current_question")
+                question = random.choice(QUESTIONS)
+                while previous and question["question"] == previous["question"]:
+                    question = random.choice(QUESTIONS)
+
+                user_data[user_id]["current_question"] = question
+                states[user_id] = QANS
+
+                options_text = "\n".join(question["options"])
+                bot.send_message(user_id, f"{question['question']}\n\n{options_text}")
+
+
+#                question = random.choice(QUESTIONS)
+#                user_data[user_id]["current_question"] = question
+#                states[user_id] = QANS
+
+#                options_text = "\n".join(question["options"])
+#                bot.send_message(user_id, f"{question['question']}\n\n{options_text}")
+#            else:
+#                bot.send_message(user_id, 'Напиши: Спроси меня вопрос')
+
+def qans(message, bot, user_id):
+            text = message.text.strip()
+            current = user_data[user_id].get("current_question")
+
+            if not current:
+                bot.send_message(user_id, 'Вопрос не задан. Напиши: Спроси меня вопрос')
+                states[user_id] = QASK
+                return
+
+            if text == current["answer"]:
+                bot.send_message(user_id, "Правильно! 🎉")
+                user_data[user_id]["score"] += 1
+            elif text in current["options"]:
+                bot.send_message(user_id, f"Неправильно 😢. Правильный ответ: {current['answer']}")
+            else:
+                bot.send_message(user_id, 'Пожалуйста, выбери один из предложенных вариантов.')
+
+#            states[user_id] = QASK
+#            bot.send_message(user_id, f"Счёт: {user_data[user_id]['score']} баллов.\nНапиши: Спроси меня вопрос")
+
+            states[user_id] = QASK
+            show_score(bot, user_id)
+
+def show_score(bot, user_id):
+    score = user_data[user_id]["score"]
+    bot.send_message(user_id, f"Счёт: {score} баллов.\nНапиши: Спроси меня вопрос")

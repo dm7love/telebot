@@ -1,18 +1,11 @@
 import telebot
 from game_module import handle_game
 from calendar_module import handle_calendar
+from states import MAIN, GAME, CALENDAR, QASK, QANS, OPENAI, states
+from config import TELEGRAM_TOKEN
+from openai_module import handle_chatgpt
 
-token = '978121031:AAELw5ZrRFwBmk8ewLIFs7f36ZRe81PNvVM'
-bot = telebot.TeleBot(token)
-states = {}
-
-#stat = {'wins' : 0, 'loss' :0   }
-
-#multiplayer_stats = {}
-
-MAIN = 'main'
-GAME = 'game'
-CALENDAR = 'calendar'
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 @bot.message_handler(func=lambda message: True)
 def dispatcher (message):
@@ -28,11 +21,18 @@ def dispatcher (message):
         elif message.text == '/calendar':
             states[user_id] = CALENDAR
             handle_calendar(message, bot, states)
+        elif message.text == '/chatGPT':
+            states[user_id] = OPENAI
+            handle_chatgpt(message, bot, states)
         else:
-            bot.send_message(user_id, 'Выберите /game или /calendar')
-    elif state == GAME:
+            bot.send_message(user_id, 'Выберите /game или /calendar или /chatGPT')
+           #in case of state debug needed use code line below
+           #print(f"[DEBUG] user_id: {user_id}, state: {state}, message: {message.text}")
+    elif state in (GAME, QASK, QANS):
             handle_game(message, bot, states)
     elif state == CALENDAR:
         handle_calendar(message, bot, states)
+    elif state == OPENAI:
+        handle_chatgpt(message, bot, states)
 
 bot.polling()
