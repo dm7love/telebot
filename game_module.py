@@ -30,7 +30,7 @@ def handle_game(message, bot, states):
         bot.send_message(user_id, 'Я тебя не понял. Напиши /game чтобы начать.')
 
 def qask(message, bot, user_id):
-            #text = message.text.strip()
+            text = message.text.strip()
             if states[user_id] == QASK:
                 bot.send_message(user_id, 'Напиши: Спроси меня вопрос')
                 return
