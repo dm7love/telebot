@@ -1,0 +1,8 @@
+{
+  "name": "telegram-bot-python",
+  "version": "1.0.0",
+  "description": "Python Telegram Bot on Glitch",
+  "scripts": {
+    "start": "python3 bot.py"
+  }
+}
