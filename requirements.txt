@@ -2,4 +2,3 @@ pyTelegramBotAPI
 google-api-python-client
 python-dotenv
 openai
-gunicorn
